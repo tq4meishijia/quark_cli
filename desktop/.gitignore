@@ -1,0 +1,10 @@
+# 构建产物
+build/bin/
+*.exe
+*.syso
+resources_*.syso
+
+# 依赖与临时文件
+node_modules/
+.DS_Store
+Thumbs.db
