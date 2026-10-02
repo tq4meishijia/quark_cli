@@ -137,6 +137,24 @@ export namespace app {
 	    }
 	}
 	
+	export class InteractiveLoginState {
+	    active: boolean;
+	    phase: string;
+	    hint: string;
+	    url: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new InteractiveLoginState(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.active = source["active"];
+	        this.phase = source["phase"];
+	        this.hint = source["hint"];
+	        this.url = source["url"];
+	    }
+	}
 	export class MyShareItem {
 	    shareId: string;
 	    title: string;

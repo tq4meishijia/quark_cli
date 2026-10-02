@@ -7,6 +7,8 @@ export function AuthStatus():Promise<app.AuthState>;
 
 export function CancelAllTasks():Promise<number>;
 
+export function CancelInteractiveLogin():Promise<boolean>;
+
 export function CancelTask(arg1:string):Promise<boolean>;
 
 export function ClearCompletedTasks():Promise<number>;
@@ -32,6 +34,8 @@ export function EnsureDownloadDir(arg1:string):Promise<string>;
 export function GetProfile():Promise<app.Profile>;
 
 export function GetSettings():Promise<config.Settings>;
+
+export function InteractiveLoginStatus():Promise<app.InteractiveLoginState>;
 
 export function ListDir(arg1:string):Promise<app.DirListing>;
 
@@ -74,3 +78,5 @@ export function SaveSettings(arg1:config.Settings):Promise<config.Settings>;
 export function SaveShare(arg1:app.SaveShareRequest):Promise<app.SaveShareResult>;
 
 export function Search(arg1:string,arg2:string,arg3:boolean):Promise<app.DirListing>;
+
+export function StartInteractiveLogin():Promise<app.InteractiveLoginState>;

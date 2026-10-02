@@ -131,6 +131,9 @@ export function createMockBridge() {
   let settings = loadSettings();
   let auth = { loggedIn: false, source: '', masked: '', message: '未登录', profile: null };
   let seq = 200;
+  // 交互式登录的模拟状态与定时器
+  let interactive = { active: false, phase: 'idle', hint: '', url: '' };
+  let interactiveTimer = null;
 
   const reindex = () => {
     fidIndex.clear();
@@ -224,6 +227,40 @@ export function createMockBridge() {
         return true;
       },
       profile: async () => auth.profile || {},
+      // 预览模式下没有真实网盘，用一段可预期的等待过程演示交互：
+      // 启动 -> 等待中 -> 自动登录成功，以便完整走通界面流程。
+      interactiveStart: async () => {
+        interactive = { active: true, phase: 'waiting', hint: '预览模式：正在模拟浏览器登录…', url: 'https://pan.quark.cn' };
+        if (interactiveTimer) clearTimeout(interactiveTimer);
+        interactiveTimer = setTimeout(() => {
+          interactiveTimer = null;
+          interactive = { active: false, phase: 'success', hint: '预览模式：已模拟登录成功', url: '' };
+          auth = {
+            loggedIn: true,
+            source: 'interactive',
+            masked: 'mock***ookie',
+            message: '已登录',
+            profile: {
+              nickname: '预览用户',
+              avatar: '',
+              memberType: 'vip',
+              usedBytes: 412316860416,
+              totalBytes: 1099511627776,
+            },
+          };
+          emit('auth:changed', auth);
+        }, 2200);
+        return interactive;
+      },
+      interactiveStatus: async () => interactive,
+      interactiveCancel: async () => {
+        if (interactiveTimer) {
+          clearTimeout(interactiveTimer);
+          interactiveTimer = null;
+        }
+        interactive = { active: false, phase: 'cancelled', hint: '已取消登录', url: '' };
+        return true;
+      },
     },
 
     files: {

@@ -70,8 +70,8 @@ func (a *App) Search(keyword, root string, recursive bool) (DirListing, error) {
 
 	if recursive && !reachedCap {
 		type level struct {
-			fid  string
-			path string
+			fid   string
+			path  string
 			depth int
 		}
 		queue := make([]level, 0, 64)

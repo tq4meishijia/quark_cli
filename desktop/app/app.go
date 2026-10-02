@@ -15,6 +15,7 @@ import (
 	"github.com/zhangjingwei/kuake_cli/sdk"
 
 	"kuake-desktop/internal/config"
+	"kuake-desktop/internal/loginproxy"
 	"kuake-desktop/internal/transfer"
 )
 
@@ -38,6 +39,11 @@ type App struct {
 	source   string
 	profile  Profile
 
+	// 交互式登录：会话、阶段与提示文案
+	loginSession *loginproxy.Session
+	loginPhase   string
+	loginHint    string
+
 	tm *transfer.Manager
 }
 
@@ -45,8 +51,9 @@ type App struct {
 func New() *App {
 	st := config.Load()
 	a := &App{
-		store:    st,
-		settings: st.Settings(),
+		store:      st,
+		settings:   st.Settings(),
+		loginPhase: PhaseIdle,
 	}
 	a.tm = transfer.NewManager(&sdkRunner{app: a}, a.emitTask)
 	a.tm.Start(16)
@@ -77,6 +84,14 @@ func (a *App) DomReady(ctx context.Context) {
 func (a *App) Shutdown(ctx context.Context) {
 	a.tm.CancelAll()
 	a.tm.Stop()
+	// 登录流程可能还挂在等待中，退出前确保端口被释放
+	a.mu.Lock()
+	session := a.loginSession
+	a.loginSession = nil
+	a.mu.Unlock()
+	if session != nil {
+		session.Close()
+	}
 	_ = a.store.UpdateSettings(a.settings)
 }
 
@@ -112,7 +127,8 @@ func (a *App) connect(raw, source string) (AuthState, error) {
 	a.mu.Unlock()
 
 	// 界面输入的凭证才落盘；环境变量属于临时来源，不写入磁盘。
-	if source == "manual" {
+	// 界面粘贴与浏览器登录都落盘；环境变量属于临时来源，不写入磁盘。
+	if source == "manual" || source == "interactive" {
 		_ = a.store.SaveCredentials(config.Credentials{Cookie: cookie, Source: source})
 	}
 	a.emitAuth()

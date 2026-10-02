@@ -1012,6 +1012,45 @@
   line-height: 1.6;
 }
 
+.login__divider {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+
+.login__divider::before,
+.login__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.login__interactive {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+}
+
+.login__interactive-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.login__interactive-url {
+  font-family: var(--font-mono);
+  color: var(--text-3);
+  word-break: break-all;
+}
+
 /* ---------- 响应式：窗口变窄时的适配 ---------- */
 
 /* 中等宽度：侧边栏收窄为图标栏 */

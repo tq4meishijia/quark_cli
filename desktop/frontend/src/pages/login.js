@@ -33,6 +33,39 @@ export function loginPage({ onSuccess }) {
 
   const error = h('div', { class: 'field__error hidden' });
 
+  // 交互式登录的进度条；成功后调用后端会广播 auth:changed，由外壳切换界面。
+  const statusBox = h('div', { class: 'login__interactive hidden' });
+  let pollTimer = 0;
+
+  const renderStatus = (st) => {
+    if (!st) return;
+    const waiting = st.phase === 'waiting';
+    statusBox.classList.remove('hidden');
+    statusBox.innerHTML = '';
+    statusBox.appendChild(
+      h(
+        'div',
+        { class: 'login__interactive-row' },
+        waiting ? h('span', { class: 'spinner spinner--sm' }) : h('span', { class: 'dot dot--' + (st.phase === 'success' ? 'ok' : 'warn') }),
+        h('span', { class: 'login__interactive-text', text: st.hint || '' })
+      )
+    );
+    if (st.url) {
+      statusBox.appendChild(
+        h('div', { class: 'login__interactive-url', text: st.url })
+      );
+    }
+    if (waiting) {
+      statusBox.appendChild(
+        h(
+          'button',
+          { class: 'btn btn--sm', type: 'button', onClick: () => doCancel() },
+          h('span', { text: '取消' })
+        )
+      );
+    }
+  };
+
   const submitBtn = h(
     'button',
     { class: 'btn btn--primary btn--block', type: 'button' },
@@ -45,6 +78,13 @@ export function loginPage({ onSuccess }) {
     { class: 'btn btn--block', type: 'button' },
     icon('harddrive', 15),
     h('span', { text: '从环境变量读取' })
+  );
+
+  const interactiveBtn = h(
+    'button',
+    { class: 'btn btn--primary btn--block', type: 'button' },
+    icon('monitor', 15),
+    h('span', { text: '在浏览器中登录' })
   );
 
   const setBusy = (busy, text) => {
@@ -83,8 +123,41 @@ export function loginPage({ onSuccess }) {
     }
   };
 
+  const beginInteractive = async () => {
+    clearError();
+    interactiveBtn.disabled = true;
+    try {
+      const st = await bridge().auth.interactiveStart();
+      renderStatus(st);
+      if (st.active) {
+        pollTimer = setInterval(async () => {
+          const cur = await bridge().auth.interactiveStatus();
+          renderStatus(cur);
+          if (!cur.active) clearInterval(pollTimer);
+        }, 900);
+      } else {
+        interactiveBtn.disabled = false;
+      }
+    } catch (err) {
+      interactiveBtn.disabled = false;
+      showError(err && err.message ? err.message : '无法启动登录');
+      toastError(err, '无法启动登录');
+    }
+  };
+
+  const doCancel = async () => {
+    clearInterval(pollTimer);
+    try {
+      await bridge().auth.interactiveCancel();
+    } finally {
+      interactiveBtn.disabled = false;
+    }
+    renderStatus({ active: false, phase: 'cancelled', hint: '已取消登录，可重新点击上方按钮。', url: '' });
+  };
+
   submitBtn.addEventListener('click', () => doLogin(input.value, 'manual'));
   envBtn.addEventListener('click', () => doLogin('', 'env'));
+  interactiveBtn.addEventListener('click', () => beginInteractive());
   input.addEventListener('keydown', (e) => {
     // Ctrl/Cmd + Enter 提交，避免与换行冲突
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) doLogin(input.value, 'manual');
@@ -124,6 +197,10 @@ export function loginPage({ onSuccess }) {
       })
     ),
 
+    h('div', { class: 'col', style: { gap: 'var(--sp-2)' } }, interactiveBtn),
+    statusBox,
+
+    h('div', { class: 'login__divider' }, h('span', { text: '或使用 Cookie 手动登录' })),
     h('div', { class: 'col', style: { gap: 'var(--sp-2)' } }, submitBtn, envBtn),
 
     h(
@@ -139,5 +216,11 @@ export function loginPage({ onSuccess }) {
     })
   );
 
-  return { node: h('div', { class: 'login' }, card) };
+  return {
+    node: h('div', { class: 'login' }, card),
+    /** 离开登录页时停掉轮询，避免定时器泄漏。 */
+    destroy() {
+      clearInterval(pollTimer);
+    },
+  };
 }

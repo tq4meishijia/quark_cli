@@ -56,6 +56,10 @@ export async function createWailsBridge() {
       loginEnv: () => call('LoginFromEnv'),
       logout: () => ok('Logout'),
       profile: () => call('GetProfile'),
+      // 交互式登录：起本地代理并让用户照常登录，成功后自动完成登录
+      interactiveStart: () => call('StartInteractiveLogin'),
+      interactiveStatus: () => call('InteractiveLoginStatus'),
+      interactiveCancel: () => ok('CancelInteractiveLogin'),
     },
 
     files: {

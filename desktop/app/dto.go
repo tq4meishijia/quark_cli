@@ -6,6 +6,24 @@
 //   - 不修改 kuake_cli 的任何代码。
 package app
 
+// 交互式登录的阶段。前端据此决定提示文案与按钮可用性。
+const (
+	PhaseIdle      = "idle"
+	PhaseWaiting   = "waiting"
+	PhaseSuccess   = "success"
+	PhaseError     = "error"
+	PhaseCancelled = "cancelled"
+)
+
+// InteractiveLoginState 是一次交互式登录的进度快照，登录页轮询它。
+// 代理地址只在 waiting 阶段给出，登录成功后立即失效。
+type InteractiveLoginState struct {
+	Active bool   `json:"active"`
+	Phase  string `json:"phase"`
+	Hint   string `json:"hint"`
+	URL    string `json:"url"`
+}
+
 // AuthState 登录态快照，登录页与侧边栏都消费它。
 type AuthState struct {
 	LoggedIn bool    `json:"loggedIn"`
@@ -39,9 +57,9 @@ type FileItem struct {
 
 // DirListing 一次目录浏览/搜索的结果。
 type DirListing struct {
-	Path      string     `json:"path"`
-	Items     []FileItem `json:"items"`
-	ReachedCap bool      `json:"reachedCap"` // 递归搜索是否触及上限而被截断
+	Path       string     `json:"path"`
+	Items      []FileItem `json:"items"`
+	ReachedCap bool       `json:"reachedCap"` // 递归搜索是否触及上限而被截断
 }
 
 // TaskDTO 传输任务的前端视图。
@@ -106,12 +124,12 @@ type ShareLink struct {
 
 // MyShareItem 我的分享列表条目。
 type MyShareItem struct {
-	ShareID  string `json:"shareId"`
-	Title    string `json:"title"`
-	URL      string `json:"url"`
-	Passcode string `json:"passcode"`
-	ViewCnt  int64  `json:"viewCnt"`
-	SaveCnt  int64  `json:"saveCnt"`
-	CreatedAt int64 `json:"createdAt"`
-	Expired  bool   `json:"expired"`
+	ShareID   string `json:"shareId"`
+	Title     string `json:"title"`
+	URL       string `json:"url"`
+	Passcode  string `json:"passcode"`
+	ViewCnt   int64  `json:"viewCnt"`
+	SaveCnt   int64  `json:"saveCnt"`
+	CreatedAt int64  `json:"createdAt"`
+	Expired   bool   `json:"expired"`
 }

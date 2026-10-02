@@ -10,6 +10,10 @@ export function CancelAllTasks() {
   return window['go']['app']['App']['CancelAllTasks']();
 }
 
+export function CancelInteractiveLogin() {
+  return window['go']['app']['App']['CancelInteractiveLogin']();
+}
+
 export function CancelTask(arg1) {
   return window['go']['app']['App']['CancelTask'](arg1);
 }
@@ -60,6 +64,10 @@ export function GetProfile() {
 
 export function GetSettings() {
   return window['go']['app']['App']['GetSettings']();
+}
+
+export function InteractiveLoginStatus() {
+  return window['go']['app']['App']['InteractiveLoginStatus']();
 }
 
 export function ListDir(arg1) {
@@ -144,4 +152,8 @@ export function SaveShare(arg1) {
 
 export function Search(arg1, arg2, arg3) {
   return window['go']['app']['App']['Search'](arg1, arg2, arg3);
+}
+
+export function StartInteractiveLogin() {
+  return window['go']['app']['App']['StartInteractiveLogin']();
 }
